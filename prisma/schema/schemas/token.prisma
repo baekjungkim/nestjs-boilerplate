@@ -1,0 +1,10 @@
+model TokenBlacklist {
+  token     String    @id @unique
+  expiresAt DateTime
+  type      TokenType
+}
+
+enum TokenType {
+  ACCESS
+  REFRESH
+}
