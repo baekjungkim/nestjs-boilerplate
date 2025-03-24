@@ -1,0 +1,9 @@
+/// 사용 중지된 JWT 토큰을 저장하는 모델
+/// 보안 강화를 위해 로그아웃된 토큰, 탈취된 토큰 등을 블랙리스트에 등록
+model TokenBlacklist {
+  token     String    @id @unique                   // 블랙리스트에 등록된 JWT 토큰
+  expiresAt DateTime                                // 토큰 만료 시점
+  type      TokenType                               // 토큰 유형 (ACCESS or REFRESH)
+}
+
+

@@ -18,7 +18,7 @@ export class RegisterDto {
   @MinLength(8)
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Za-z]).*$/, {
     message:
-      '비밀번호는 최소 8자 이상, 숫자 1개, 특수문자 1개, 영문자 1개를 포함해야 합니다.',
+      'Password must contain at least eight characters, one number, one special character, and one alphanumeric character.',
   })
   password: string;
 

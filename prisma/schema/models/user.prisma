@@ -1,0 +1,11 @@
+/// 시스템 내 사용자 계정 정보를 저장하는 모델
+/// 이메일, 비밀번호, 이름, 역할(role) 등을 포함하며 계약서 및 댓글과 연결됨
+model User {
+  id        String   @id @default(uuid()) // 사용자 ID
+  email     String   @unique // 이메일 (로그인 ID)
+  password  String // 비밀번호 (해시 저장)
+  name      String // 사용자 이름
+  role      UserRole @default(USER) // 사용자 역할 (기본값: USER)
+  createdAt DateTime @default(now()) // 생성일
+  updatedAt DateTime @updatedAt // 수정일
+}

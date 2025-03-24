@@ -357,8 +357,8 @@ lerna-debug.log*
 /prisma/migrations
 
 # Environment variables
-.env
-.env.*
+.env*
+!*.env.example
 
 # Generated files
 /public

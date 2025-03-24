@@ -1,8 +1,6 @@
-import {
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { AuthErrorKeys } from '@/common/constants/response-messages';
+import { CustomException } from '@/common/exceptions/custom.exception';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
@@ -17,7 +15,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     if (!user) {
-      throw new UnauthorizedException('인증되지 않은 사용자입니다.');
+      throw new CustomException(AuthErrorKeys.UNAUTHORIZED, 401);
     }
 
     return user;

@@ -1,12 +1,9 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { AdminResponseKeys } from '@/common/constants/response-messages';
+import { CustomException } from '@/common/exceptions/custom.exception';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '@prisma/client';
-import { ROLES_KEY } from '../auth/decorators/roles.decorator';
+import { ROLES_KEY } from '../../common/decorators/roles.decorator';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -36,9 +33,7 @@ export class AdminGuard implements CanActivate {
     };
 
     if (roleHierarchy[request.user.role] < roleHierarchy[requiredRole]) {
-      throw new ForbiddenException('해당 작업을 수행할 권한이 없습니다.');
+      throw new CustomException(AdminResponseKeys.UNAUTHORIZED_OPERATION, 403);
     }
-
-    return true;
   }
 }

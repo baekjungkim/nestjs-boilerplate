@@ -1,5 +1,7 @@
+import { AuthErrorKeys } from '@/common/constants/response-messages';
+import { CustomException } from '@/common/exceptions/custom.exception';
 import { PrismaService } from '@/common/prisma/prisma.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
@@ -27,22 +29,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     try {
       // 1. 토큰 타입 체크
       if (payload.type !== 'access') {
-        throw new UnauthorizedException('Invalid token type');
+        throw new CustomException(AuthErrorKeys.INVALID_TOKEN_TYPE, 401);
       }
 
       // 2. 블랙리스트 체크 추가
       const token = req.headers.authorization?.split(' ')[1];
       if (!token) {
-        throw new UnauthorizedException('Token not found');
+        throw new CustomException(AuthErrorKeys.TOKEN_NOT_FOUND, 401);
       }
       if (await this.tokenBlacklistService.isBlacklisted(token)) {
         const res = req.res;
         if (res) {
           res.clearCookie('refresh_token');
           // 프론트엔드에 로그아웃 필요성을 알리는 응답
-          throw new UnauthorizedException({
-            message: 'Token has been revoked',
-            logout: true, // 프론트엔드에서 이 플래그를 보고 액세스 토큰 삭제 처리
+          throw new CustomException(AuthErrorKeys.TOKEN_REVOKED, 401, {
+            logout: true,
           });
         }
       }
@@ -53,12 +54,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       });
 
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new CustomException(AuthErrorKeys.USER_NOT_FOUND, 401);
       }
 
       return { id: payload.sub, email: payload.email, role: user.role };
     } catch (error) {
-      throw new UnauthorizedException();
+      throw new CustomException(AuthErrorKeys.UNAUTHORIZED, 401);
     }
   }
 }

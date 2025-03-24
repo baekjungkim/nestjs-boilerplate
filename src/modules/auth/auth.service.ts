@@ -1,5 +1,7 @@
+import { AuthErrorKeys } from '@/common/constants/response-messages';
+import { CustomException } from '@/common/exceptions/custom.exception';
 import { PrismaService } from '@/common/prisma/prisma.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TokenType } from '@prisma/client';
 import * as bcryptjs from 'bcryptjs';
@@ -22,7 +24,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new UnauthorizedException('이미 존재하는 이메일입니다.');
+      throw new CustomException(AuthErrorKeys.USER_ALREADY_EXISTS, 401);
     }
 
     const salt = await bcryptjs.genSalt(10);
@@ -36,25 +38,13 @@ export class AuthService {
     });
   }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (user && (await bcryptjs.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
-  }
-
   async login(loginDto: { email: string; password: string }, res: Response) {
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
     });
 
     if (!user) {
-      throw new UnauthorizedException('이메일이 존재하지 않습니다.');
+      throw new CustomException(AuthErrorKeys.USER_NOT_FOUND, 404);
     }
 
     const isPasswordValid = await bcryptjs.compare(
@@ -62,7 +52,7 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
+      throw new CustomException(AuthErrorKeys.INVALID_PASSWORD, 401);
     }
 
     const payload: JwtPayload = {
@@ -104,12 +94,12 @@ export class AuthService {
       // 1. 토큰 검증
       const payload = this.jwtService.verify<JwtPayload>(refreshToken);
       if (payload.type !== 'refresh') {
-        throw new UnauthorizedException('Invalid token type');
+        throw new CustomException(AuthErrorKeys.INVALID_TOKEN_TYPE, 401);
       }
 
       // 2. 블랙리스트 체크
       if (await this.tokenBlacklistService.isBlacklisted(refreshToken)) {
-        throw new UnauthorizedException('Token has been revoked');
+        throw new CustomException(AuthErrorKeys.TOKEN_REVOKED, 401);
       }
 
       // 3. 사용자 확인
@@ -117,7 +107,7 @@ export class AuthService {
         where: { id: payload.sub },
       });
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new CustomException(AuthErrorKeys.USER_NOT_FOUND, 404);
       }
 
       // 4. 이전 토큰 블랙리스에 추가
@@ -169,7 +159,7 @@ export class AuthService {
         token_type: 'Bearer',
       };
     } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new CustomException(AuthErrorKeys.INVALID_REFRESH_TOKEN, 401);
     }
   }
 
@@ -189,7 +179,7 @@ export class AuthService {
       ]);
       return { message: 'Successfully logged out' };
     } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new CustomException(AuthErrorKeys.INVALID_REFRESH_TOKEN, 401);
     }
   }
 }

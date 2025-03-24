@@ -1,0 +1,5 @@
+/// 블랙리스트 등록 토큰 유형
+enum TokenType {
+  ACCESS // 액세스 토큰
+  REFRESH // 리프레시 토큰
+}
